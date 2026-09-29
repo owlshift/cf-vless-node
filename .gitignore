@@ -1,0 +1,12 @@
+# 别人的成品，不入库（脚本按机房缓存扫描结果）
+cfst/
+result-*.csv
+*.mmdb
+*.dat
+
+# 部署产物与备份
+yg_worker.js
+_*.cjs
+*.bak*
+node_modules/
+.DS_Store

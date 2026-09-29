@@ -1,0 +1,144 @@
+# CF Workers VLESS 节点 —— Clash/mihomo 配置骨架
+# 占位符全部替换后即可用；节点数固定 8 个，和 pickip.cjs 的 --top 8 对应
+#   {{HOST}}  = Worker 域名，如 cf-node.example.com
+#   {{UUID}}  = 部署时 --uuid 传进去的那个值
+# 三个容易写错的地方（都踩过）：
+#   1. Host 头必须写在 ws-opts.headers.Host —— mihomo 不认 ws-opts.host，写了会 403
+#   2. 只留 TLS 端口(443)。VLESS 本身不加密，2082/80 明文口等于把流量裸奔给 CF
+#   3. 自动切换组必须 hidden 并挂在 select 组下面，理由见下面 proxy-groups 的注释
+
+mixed-port: 7897
+allow-lan: false
+mode: rule
+log-level: warning
+unified-delay: true
+tcp-concurrent: true
+
+proxies:
+  - name: 节点A
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+  - name: 节点B
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+  - name: 节点C
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+  - name: 节点D
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+  - name: 节点E
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+  - name: 节点F
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+  - name: 节点G
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+  - name: 节点H
+    type: vless
+    server: 0.0.0.0
+    port: 443
+    uuid: {{UUID}}
+    network: ws
+    tls: true
+    servername: {{HOST}}
+    alpn: ["http/1.1"]
+    ws-opts:
+      path: /?ed=2560
+      headers:
+        Host: {{HOST}}
+
+
+proxy-groups:
+  # 用户只碰这个 select 组，界面保持选「自动」。
+  # 为什么不直接把 url-test 暴露给用户：在 url-test 组里手点任意成员会把该组永久钉死，
+  # fixed 会写进 cache.db 且重启客户端不失效 —— 对不折腾命令行的人来说是个静默的坏配置。
+  - name: CF
+    type: select
+    proxies: [自动, 节点A, 节点B, 节点C, 节点D, 节点E, 节点F, 节点G, 节点H]
+  - name: 自动
+    type: url-test
+    hidden: true
+    proxies: [节点A, 节点B, 节点C, 节点D, 节点E, 节点F, 节点G, 节点H]
+    url: https://cp.cloudflare.com/generate_204
+    interval: 120
+    tolerance: 150    # 只有快过这个差值才切换；小于它的波动不算"卡住"
+
+rules:
+  - GEOSITE,private,DIRECT
+  - GEOIP,private,DIRECT,no-resolve
+  - GEOSITE,cn,DIRECT     # 注意：中文"测我的 IP"站点会被这条判成直连
+  - GEOIP,CN,DIRECT,no-resolve
+  - MATCH,CF
