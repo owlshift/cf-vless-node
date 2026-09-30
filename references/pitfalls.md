@@ -92,6 +92,10 @@ mihomo 只在别的成员快出 tolerance 时才切。判断"是不是被钉死"
 **14. mihomo 不认 `ws-opts.host`。**
 Host 头只能写在 `ws-opts.headers.Host`，写成 `host:` 字段会被静默忽略，症状是 Worker 返回 403。
 
+**14b. ⚑ 单节点也不能删 proxy-groups —— cmfa 的"节点信息"UI 只渲染组。**
+内核允许规则直写节点名且 `-t` 校验通过，但 cmfa 代理页/配置卡没有组就显示"没有节点信息"。
+订阅配置里哪怕只有一个节点，也要包一层 `select` 组。
+
 **15. 不要杀 Clash Verge 的正式 core。**
 `verge-mihomo.exe` 里带 `-d ...\io.github.clash-verge-rev...` 的是用户正在用的那个。
 自己起的测试实例要用不同的 config 目录，杀的时候按命令行里有没有那个测试目录过滤。

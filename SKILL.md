@@ -142,7 +142,7 @@ curl -sx http://127.0.0.1:7897 https://raw.githubusercontent.com/yonggekkk/Cloud
 - `scripts/check.cjs` — 排障四连：`ip` / `egress` / `bindings` / `groups`
 - `scripts/pickip.cjs` — 优选入口 IP 并写回配置
 - `scripts/deploy.cjs` — 部署 Worker + DNS + 路由（默认先 `--dry-run`）
-- `references/pitfalls.md` — 25 条实测坑与判据。**下结论前先查这里**，尤其标 ⚑ 的：
+- `references/pitfalls.md` — 26 条实测坑与判据。**下结论前先查这里**，尤其标 ⚑ 的：
   101 不等于能用、两帧缺一不可、grep 源码 UUID 会错、中文测 IP 站必然误报、cfst 数字不能排序、
   url-test 手点会永久钉死
 - `assets/profile.template.yaml` — Clash 配置骨架（`select` + `hidden` `url-test` 结构）
