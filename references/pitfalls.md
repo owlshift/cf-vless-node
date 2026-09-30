@@ -80,7 +80,7 @@ Play 的更新 CDN 域名有区域变体（gvt1-cn / gvt2-cn），实测 `gvt2-c
 修：`GEOSITE,google,CF` 放在 `GEOSITE,cn,DIRECT` 之前（模板已带）。同类误伤：中文测 IP 站（见判据 3）。
 
 **12d. ⚑ cmfa 关 IPv6 ≠ 只走 IPv4，是把 `::/0` 黑洞了，FCM 跟着死。**
-cmfa 的 IPv6 开关关闭时，VPN 路由表出现 `::/0 unreachable` —— 不是"IPv6 回落 IPv4"，是整个 v6 被丢弃。
+关闭时不是"IPv6 回落 IPv4"，是整个 v6 被丢弃。
 Google 基础设施 IPv6 优先，FCM（bb*.google.com）连不上 → Play 下载没有"开始"信号 → 等待中。
 "开了 IPv6 不稳定"是误解：接管 v6 不等于节点要支持 v6，app 连的是 fake-ip6，出口仍是节点的 IPv4 隧道。
 判据：`adb shell dumpsys connectivity | grep '::/0'`，出现 unreachable 即中招。修：开 cmfa IPv6 开关 + `dns.ipv6: true`。
