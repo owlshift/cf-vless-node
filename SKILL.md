@@ -64,6 +64,8 @@ UUID 通过 `plain_text` 绑定注入，**不改源码**（改了也会被 `env.
 - Host 头只能写在 `ws-opts.headers.Host`，写成 `ws-opts.host` 会被静默忽略 → 403
 - 自动切换必须是 `select` 组套 `hidden` 的 `url-test` 组 —— 用户在 url-test 组里手点成员会
   **永久钉死**该组（`fixed` 写进 cache.db，重启不失效）
+- 必须带 `dns:` 段（fake-ip + 国内外分流 + `prefer-h3: false`）—— 缺了它走系统 DNS，
+  Google 冷门域名被污染，症状是"网页能开但 Google 商店永远等待中"（详见 pitfalls 12b）
 
 然后 `node scripts/pickip.cjs --config <那个文件>` 填 8 个入口 IP。
 

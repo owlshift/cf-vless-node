@@ -2,10 +2,12 @@
 # 占位符全部替换后即可用；节点数固定 8 个，和 pickip.cjs 的 --top 8 对应
 #   {{HOST}}  = Worker 域名，如 cf-node.example.com
 #   {{UUID}}  = 部署时 --uuid 传进去的那个值
-# 三个容易写错的地方（都踩过）：
+# 四个容易写错的地方（都踩过）：
 #   1. Host 头必须写在 ws-opts.headers.Host —— mihomo 不认 ws-opts.host，写了会 403
 #   2. 只留 TLS 端口(443)。VLESS 本身不加密，2082/80 明文口等于把流量裸奔给 CF
 #   3. 自动切换组必须 hidden 并挂在 select 组下面，理由见下面 proxy-groups 的注释
+#   4. 必须带 dns 段（fake-ip + 国内外分流）。缺了它 mihomo 走系统 DNS，
+#      Google 冷门域名被污染 → 网页能开但 Play 商店永远"等待中"（实测翻车）
 
 mixed-port: 7897
 allow-lan: false
@@ -13,6 +15,36 @@ mode: rule
 log-level: warning
 unified-delay: true
 tcp-concurrent: true
+
+sniffing:
+  enable: true
+  sniff:
+    - HTTP
+    - TLS
+
+dns:
+  enable: true
+  prefer-h3: false       # 禁 QUIC：UDP 走 CF WS 丢包重，是"加载慢"的常见根因
+  respect-rules: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - "*.lan"
+    - "*.local"
+    - "+.msftconnecttest.com"
+    - "+.msftncsi.com"
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver-policy:     # 国内/私有域名走国内 DoH，其余走下方 nameserver，互不污染
+    "geosite:cn,private":
+      - https://223.5.5.5/dns-query
+      - https://doh.pub/dns-query
+  nameserver:
+    - https://cloudflare-dns.com/dns-query
+    - https://dns.google/dns-query
+  proxy-server-nameserver:
+    - https://223.5.5.5/dns-query
 
 proxies:
   - name: 节点A

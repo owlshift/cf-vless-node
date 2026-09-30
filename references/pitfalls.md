@@ -65,6 +65,14 @@ cfst 在这套流程里只承担两件事：快速产生候选 IP、按机房粗
 给不折腾命令行的人，配置必须做成：`select` 组（用户只碰这个，保持选「自动」）
 套一个 `hidden: true` 的 `url-test` 组。界面里看不到隐藏组，就点不到。
 
+**12b. ⚑ 配置缺 `dns:` 段 = 手机能开 YouTube 但 Google 商店永远「等待中」。**
+不写 `dns`，mihomo 走系统 DNS，大陆网络下 Google 冷门域名（`clients3.google.com`、
+Play 下载依赖的一堆域）被污染解析到错误 IP。症状极具迷惑性：大站（YouTube）能开让人以为节点坏了，
+其实节点 16/16 全通、电脑同节点实测 `dl.google.com` 也 200。
+判据：`curl -x 本地代理 https://clients3.google.com/generate_204` 电脑通、手机不通 → 客户端 DNS，非节点。
+修：配置补 `enhanced-mode: fake-ip` + `nameserver-policy` 国内外分流（见 profile.template.yaml），
+`prefer-h3: false` 禁 QUIC。手机 cmfa 若装了旧版无 dns 段的配置，重导新配置 + 清 Play 商店数据。
+
 **13. `tolerance` 内的不切换是设计行为，不是卡住。**
 mihomo 只在别的成员快出 tolerance 时才切。判断"是不是被钉死"要用组自己的 history + tolerance，
 单次测速的差值不算证据（`check.cjs groups` 按这个规则实现）。
