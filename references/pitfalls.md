@@ -73,6 +73,18 @@ Play 下载依赖的一堆域）被污染解析到错误 IP。症状极具迷惑
 修：配置补 `enhanced-mode: fake-ip` + `nameserver-policy` 国内外分流（见 profile.template.yaml），
 `prefer-h3: false` 禁 QUIC。手机 cmfa 若装了旧版无 dns 段的配置，重导新配置 + 清 Play 商店数据。
 
+**12c. ⚑ `gvt2-cn.com` 同时挂在 geosite 的 cn 分类里，直连规则会吃掉 Play 下载。**
+Play 的更新 CDN 域名有区域变体（gvt1-cn / gvt2-cn），实测 `gvt2-cn.com` 在 `[CN]` 分类（解析 geosite.dat 确认）。
+所以 `GEOSITE,cn,DIRECT` 排前面时，商店页面（google.com 系）全走代理看着正常，
+一点"更新"命中 gvt2-cn 就直连 → 永远"等待中"。新装应用命中别的 CDN 节点还能成功，极具迷惑性。
+修：`GEOSITE,google,CF` 放在 `GEOSITE,cn,DIRECT` 之前（模板已带）。同类误伤：中文测 IP 站（见判据 3）。
+
+**12d. ⚑ cmfa 关 IPv6 ≠ 只走 IPv4，是把 `::/0` 黑洞了，FCM 跟着死。**
+cmfa 的 IPv6 开关关闭时，VPN 路由表出现 `::/0 unreachable` —— 不是"IPv6 回落 IPv4"，是整个 v6 被丢弃。
+Google 基础设施 IPv6 优先，FCM（bb*.google.com）连不上 → Play 下载没有"开始"信号 → 等待中。
+"开了 IPv6 不稳定"是误解：接管 v6 不等于节点要支持 v6，app 连的是 fake-ip6，出口仍是节点的 IPv4 隧道。
+判据：`adb shell dumpsys connectivity | grep '::/0'`，出现 unreachable 即中招。修：开 cmfa IPv6 开关 + `dns.ipv6: true`。
+
 **13. `tolerance` 内的不切换是设计行为，不是卡住。**
 mihomo 只在别的成员快出 tolerance 时才切。判断"是不是被钉死"要用组自己的 history + tolerance，
 单次测速的差值不算证据（`check.cjs groups` 按这个规则实现）。

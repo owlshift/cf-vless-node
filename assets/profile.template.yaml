@@ -24,6 +24,7 @@ sniffing:
 
 dns:
   enable: true
+  ipv6: true             # fake-ip 同时接管 AAAA；手机端还须开客户端自己的 IPv6 开关，见 pitfalls 12d
   prefer-h3: false       # 禁 QUIC：UDP 走 CF WS 丢包重，是"加载慢"的常见根因
   respect-rules: true
   enhanced-mode: fake-ip
@@ -171,6 +172,7 @@ proxy-groups:
 rules:
   - GEOSITE,private,DIRECT
   - GEOIP,private,DIRECT,no-resolve
+  - GEOSITE,google,CF     # 必须在 cn 之前：gvt2-cn.com(Play下载CDN)也挂在 cn 分类里，见 pitfalls 12c
   - GEOSITE,cn,DIRECT     # 注意：中文"测我的 IP"站点会被这条判成直连
   - GEOIP,CN,DIRECT,no-resolve
   - MATCH,CF

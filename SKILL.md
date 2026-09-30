@@ -59,13 +59,15 @@ UUID 通过 `plain_text` 绑定注入，**不改源码**（改了也会被 `env.
 复制 `assets/profile.template.yaml`，替换 `{{HOST}}`（就是 `cf-node.example.com`）
 和 `{{UUID}}`（deploy 打印的那个），存成用户的配置文件。
 
-三个必查点：
+五个必查点：
 - `port: 443` + `tls: true` —— VLESS 不加密，明文端口等于裸奔
 - Host 头只能写在 `ws-opts.headers.Host`，写成 `ws-opts.host` 会被静默忽略 → 403
 - 自动切换必须是 `select` 组套 `hidden` 的 `url-test` 组 —— 用户在 url-test 组里手点成员会
   **永久钉死**该组（`fixed` 写进 cache.db，重启不失效）
 - 必须带 `dns:` 段（fake-ip + 国内外分流 + `prefer-h3: false`）—— 缺了它走系统 DNS，
   Google 冷门域名被污染，症状是"网页能开但 Google 商店永远等待中"（详见 pitfalls 12b）
+- `GEOSITE,google,CF` 必须在 `GEOSITE,cn,DIRECT` **之前** —— `gvt2-cn.com`（Play 下载 CDN）
+  同时属于 cn 分类，被直连规则先吃掉就是"更新永远等待中"（详见 pitfalls 12c）
 
 然后 `node scripts/pickip.cjs --config <那个文件>` 填 8 个入口 IP。
 
@@ -140,7 +142,7 @@ curl -sx http://127.0.0.1:7897 https://raw.githubusercontent.com/yonggekkk/Cloud
 - `scripts/check.cjs` — 排障四连：`ip` / `egress` / `bindings` / `groups`
 - `scripts/pickip.cjs` — 优选入口 IP 并写回配置
 - `scripts/deploy.cjs` — 部署 Worker + DNS + 路由（默认先 `--dry-run`）
-- `references/pitfalls.md` — 23 条实测坑与判据。**下结论前先查这里**，尤其标 ⚑ 的：
+- `references/pitfalls.md` — 25 条实测坑与判据。**下结论前先查这里**，尤其标 ⚑ 的：
   101 不等于能用、两帧缺一不可、grep 源码 UUID 会错、中文测 IP 站必然误报、cfst 数字不能排序、
   url-test 手点会永久钉死
 - `assets/profile.template.yaml` — Clash 配置骨架（`select` + `hidden` `url-test` 结构）
